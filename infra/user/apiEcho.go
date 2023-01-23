@@ -33,16 +33,13 @@ func (api *API) Register(c echo.Context) error {
 	if err := c.Bind(user); err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]string{"message": err.Error()})
 	}
-
 	res, err := api.svc.Register(c.Request().Context(), *user)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"message": err.Error()})
 	}
-
 	if res.Status == http.StatusOK {
 		return c.JSON(http.StatusOK, res)
 	}
-
 	return c.JSON(http.StatusCreated, res)
 }
 
@@ -58,10 +55,10 @@ func (api *API) Login(c echo.Context) error {
 			Message: "Phone Number or Password can't be empty",
 		})
 	}
-	token, err := api.svc.Login(c, *user)
+	token, err := api.svc.Login(c.Request().Context(), *user)
 	if err != nil {
-		return c.JSON(http.StatusBadRequest, Response{
-			Status:  http.StatusBadRequest,
+		return c.JSON(http.StatusNotFound, Response{
+			Status:  http.StatusNotFound,
 			Message: "Phone Number or Password is not match",
 		})
 	}
@@ -81,7 +78,7 @@ func (api *API) Login(c echo.Context) error {
 }
 func (api *API) TokenClaim(c echo.Context) error {
 	user := c.Get("user").(*jwt.Token)
-	claims, err := api.svc.TokenClaim(c, user)
+	claims, err := api.svc.TokenClaim(c.Request().Context(), user)
 	if err != nil {
 		return c.JSON(http.StatusUnauthorized, Response{
 			Status:  http.StatusUnauthorized,

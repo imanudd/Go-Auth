@@ -39,7 +39,7 @@ func (svc *UserServiceImpl) Register(c context.Context, req User) (res Response,
 
 }
 
-func (svc *UserServiceImpl) Login(c echo.Context, req User) (token *jwt.Token, err error) {
+func (svc *UserServiceImpl) Login(c context.Context, req User) (token *jwt.Token, err error) {
 	user, res, err := svc.repo.Login(c, req)
 	if err != nil {
 		return nil, err
@@ -56,7 +56,7 @@ func (svc *UserServiceImpl) Login(c echo.Context, req User) (token *jwt.Token, e
 	return token, nil
 }
 
-func (svc *UserServiceImpl) TokenClaim(c echo.Context, user *jwt.Token) (MyClaims, error) {
+func (svc *UserServiceImpl) TokenClaim(c context.Context, user *jwt.Token) (MyClaims, error) {
 	token, err := jwt.ParseWithClaims(user.Raw, &MyClaims{}, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, errors.New("unexpected signing method")
@@ -76,8 +76,8 @@ func (svc *UserServiceImpl) TokenClaim(c echo.Context, user *jwt.Token) (MyClaim
 	return myClaims, nil
 }
 
-func (svc *UserServiceImpl) NewUser(c echo.Context, req User) (res Response, err error) {
-	res, err = svc.repo.NewUser(c.Request().Context(), req)
+func (svc *UserServiceImpl) NewUser(c context.Context, req User) (res Response, err error) {
+	res, err = svc.repo.NewUser(c, req)
 	if err != nil {
 		return res, err
 	}

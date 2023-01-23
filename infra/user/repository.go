@@ -8,7 +8,6 @@ import (
 
 	"github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/stdlib"
-	"github.com/labstack/echo/v4"
 	"github.com/sethvargo/go-password/password"
 	"github.com/uptrace/bun"
 	"github.com/uptrace/bun/dialect/pgdialect"
@@ -22,7 +21,7 @@ type UserRepositoryImpl struct {
 func NewUserRepositoryImpl(connectionStr string) UserRepository {
 	config, err := pgx.ParseConfig(connectionStr)
 	if err != nil {
-		fmt.Println("DB ERROR")
+		panic(err)
 	}
 	config.PreferSimpleProtocol = true
 	sqlDb := stdlib.OpenDB(*config)
@@ -57,21 +56,17 @@ func (repo *UserRepositoryImpl) Register(ctx context.Context, req User) (res Res
 	return res, nil
 }
 
-func (repo *UserRepositoryImpl) Login(ctx echo.Context, req User) (User, bool, error) {
+func (repo *UserRepositoryImpl) Login(ctx context.Context, req User) (User, bool, error) {
 	var user User
-	err := repo.db.NewSelect().Where("phone_number = ? AND password = ?", req.Phone_number, req.Password).Model(&user).Scan(ctx.Request().Context())
+	err := repo.db.NewSelect().Where("phone_number = ? AND password = ?", req.Phone_number, req.Password).Model(&user).Scan(ctx)
 	if err == sql.ErrNoRows {
 		fmt.Println("User Not Found")
 		return user, false, err
 	}
 
 	if err != nil {
+		//Handle and Show to API
 		fmt.Println("Query ERROR")
-		return user, false, err
-	}
-
-	if user.Password != req.Password {
-		fmt.Println("Password Doesn't Match !")
 		return user, false, err
 	}
 	return user, true, nil
